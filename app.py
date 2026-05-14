@@ -2,6 +2,8 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 import numpy as np
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 
 from utils import (
     extract_text_from_pdf,
@@ -12,7 +14,78 @@ from utils import (
     generate_resume_feedback,
     calculate_skill_match
 )
+# Generate PDF Report
+def create_pdf_report(score, matched_skills, missing, feedback):
 
+    doc = SimpleDocTemplate("ATS_Report.pdf")
+
+    styles = getSampleStyleSheet()
+
+    content = []
+
+    title = Paragraph(
+        "<b>AI Resume Analyzer Report</b>",
+        styles['Title']
+    )
+
+    content.append(title)
+
+    content.append(Spacer(1, 20))
+
+    # ATS Score
+    ats = Paragraph(
+        f"<b>ATS Match Score:</b> {score}%",
+        styles['BodyText']
+    )
+
+    content.append(ats)
+
+    content.append(Spacer(1, 12))
+
+    # Matched Skills
+    matched = Paragraph(
+        f"<b>Matched Skills:</b> {matched_skills}",
+        styles['BodyText']
+    )
+
+    content.append(matched)
+
+    content.append(Spacer(1, 12))
+
+    # Missing Skills
+    missing_text = ", ".join(missing)
+
+    missing_para = Paragraph(
+        f"<b>Missing Skills:</b> {missing_text}",
+        styles['BodyText']
+    )
+
+    content.append(missing_para)
+
+    content.append(Spacer(1, 20))
+
+    # Feedback
+    feedback_title = Paragraph(
+        "<b>AI Feedback:</b>",
+        styles['Heading2']
+    )
+
+    content.append(feedback_title)
+
+    for item in feedback:
+
+        para = Paragraph(
+            item,
+            styles['BodyText']
+        )
+
+        content.append(para)
+
+        content.append(Spacer(1, 8))
+
+    doc.build(content)
+
+    return "ATS_Report.pdf"
 # Page Config
 st.set_page_config(
     page_title="AI Resume Analyzer",
@@ -300,7 +373,26 @@ if st.button("Analyze Resume"):
             )
 
         st.write("---")
+        # PDF REPORT
+        st.write("---")
 
+        st.subheader("📥 Download ATS Report")
+
+        pdf_file = create_pdf_report(
+            score,
+            matched_skills,
+            missing,
+            feedback
+        )
+
+        with open(pdf_file, "rb") as file:
+
+            st.download_button(
+                label="Download PDF Report",
+                data=file,
+                file_name="ATS_Report.pdf",
+                mime="application/pdf"
+            )
         # Resume Preview
         with st.expander("📄 Resume Preview"):
 
