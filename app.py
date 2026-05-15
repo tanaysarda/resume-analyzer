@@ -147,6 +147,48 @@ def generate_ai_feedback(resume_text, job_description):
     return response.choices[0].message.content
 
 # =========================
+# AI RESUME REWRITER
+# =========================
+
+def rewrite_resume_text(text, mode):
+
+    prompt = f"""
+
+    Rewrite this resume bullet point professionally.
+
+    Rewrite Style:
+    {mode}
+
+    Requirements:
+    - ATS optimized
+    - professional tone
+    - impactful wording
+    - concise
+    - technical language
+    - strong action verbs
+
+    Resume Content:
+    {text}
+
+    """
+
+    response = client.chat.completions.create(
+
+        model="deepseek/deepseek-chat",
+
+        messages=[
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
+
+    )
+
+    return response.choices[0].message.content
+
+
+# =========================
 # SIDEBAR
 # =========================
 
@@ -535,7 +577,77 @@ if st.session_state.analysis_done:
                 """,
                 unsafe_allow_html=True
             )
+        st.write("---")
 
+    # =========================
+    # AI RESUME REWRITER
+    # =========================
+
+    st.subheader("✍ AI Resume Rewriter")
+
+    st.markdown("""
+    Improve resume bullet points using AI-powered ATS optimization.
+    """)
+
+    rewrite_mode = st.selectbox(
+
+        "Choose Rewrite Style",
+
+        [
+            "Professional",
+            "ATS Optimized",
+            "Technical",
+            "Concise"
+        ]
+    )
+
+    rewrite_text = st.text_area(
+        "Enter Resume Bullet Point",
+        height=150,
+        placeholder="Example: Built chatbot using Python"
+    )
+
+    if st.button("Rewrite Resume Content"):
+
+        if rewrite_text:
+
+            with st.spinner(
+                "🤖 AI is rewriting your content..."
+            ):
+
+                rewritten = rewrite_resume_text(
+                    rewrite_text,
+                    rewrite_mode
+                )
+
+                st.success(
+                    "AI-Rewritten Resume Content"
+                )
+
+                st.markdown(
+                    f"""
+                    <div style="
+                        padding:25px;
+                        border-radius:15px;
+                        background: linear-gradient(to right, #141e30, #243b55);
+                        color:white;
+                        line-height:1.8;
+                        font-size:17px;
+                        margin-top:10px;
+                    ">
+                    {rewritten}
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+        else:
+
+            st.warning(
+                "Please enter resume content."
+            )
+
+            
     st.write("---")
 
     # Resume Preview
